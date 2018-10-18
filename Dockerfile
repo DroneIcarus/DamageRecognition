@@ -14,7 +14,7 @@ RUN yes | apt update
 RUN yes | apt install python-pip python3-pip python-dev build-essential 
 #RUN yes | pip install --upgrade pip 
 
-RUN pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
 RUN apt-get update
 RUN yes | apt-get install libgtk2.0-dev
 
