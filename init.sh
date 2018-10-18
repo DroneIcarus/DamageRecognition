@@ -10,7 +10,6 @@ docker rm -f $containerName
 
 echo Run new container...
 sudo docker run -d --name $containerName -v "$PWD"/src:/app --rm -i -t $imageName bash
-sudo docker cp devApp/. $containerName:/app/
 
 #acces the bash container: sudo docker attach $containerName
 #update code container: sudo docker cp devApp/. $containerName:/app/
