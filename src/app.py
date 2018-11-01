@@ -1,22 +1,49 @@
-from sklearn import tree
-#DataSet
-#[size,weight,texture]
-X = [[181, 80, 44], [177, 70, 43], [160, 60, 38], [154, 54, 37],[166, 65, 40],
-     [190, 90, 47], [175, 64, 39],
-     [177, 70, 40], [159, 55, 37], [171, 75, 42], [181, 85, 43]]
+import os, sys
+import DamageRecognition as dr
 
-Y = ['apple', 'apple', 'orange', 'orange', 'apple', 'apple', 'orange', 'orange',
-     'orange', 'apple', 'apple']
+def preview():
+    dr.getAllPreview()
 
-#classifier - DecisionTreeClassifier
-clf_tree = tree.DecisionTreeClassifier();
-clf_tree = clf_tree.fit(X,Y);
+def gridPreview():
+    dr.createAllGridPreview()
 
-#test_data
-test_data = [[190,70,42],[172,64,39],[182,80,42]];
+# No parameter : Extract all the tile from the imageName
+# With array of tile position: Extract the selected tile (Example: python app.py tile 1:2,2:10  => Extract the tile 1-2 et 2-10)
+def tile():
+    selectedTiles = []
+    if len(sys.argv) > 2:
+        arg2 = sys.argv[2].replace('[', '')
+        arg2 = arg2.replace(']', '')
+        stringTiles = arg2.split(',')
+        for tile in stringTiles:
+            position = tile.split(':')
+            selectedTiles.append([int(position[0]),int(position[1])])
+        dr.createTiles(selectedTiles)
+    else:
+        print('Extracting all tiles are not implemented...')
 
-#prediction
-prediction_tree = clf_tree.predict(test_data);
+def splitTiles():
+    print('splitTiles')
+    dr.createSplittedTile()
 
-print("Prediction of DecisionTreeClassifier:",prediction_tree);
-print("banana")
+def downloadTestImages():
+    dr.downloadTestImages()
+
+actions = {
+'preview' : preview,
+'gridPreview' : gridPreview,
+'tile': tile,
+'splitTiles': splitTiles,
+'test' : downloadTestImages
+}
+
+if len(sys.argv) > 1:
+    arg = sys.argv[1]
+    if arg in actions:
+        actions[arg]()
+    else:
+        print('Unknown parameters')
+else:
+    print('No parameter entered...')
+
+#dr.getAllPreview()
