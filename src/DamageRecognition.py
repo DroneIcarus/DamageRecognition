@@ -7,7 +7,7 @@ from gdalconst import *
 
 #Configuration
 TILE_PIXEL = 1000
-TILE_SIZE_SPLIT = 500
+TILE_SIZE_SPLIT = 1000
 
 #Directories
 DATA_PATH = 'data/'
@@ -114,8 +114,13 @@ def splitTiles(tilePath, tileIds, tileSize, splitTileSize):
             #print(POST_PRE_DATASET_PATH + tiffName + '_' + str(x) + '_' + str(y)+".png")
             cv2.imwrite(POST_PRE_DATASET_PATH + tiffName + '_' +tempGps+".png",nextIm)
 
-
 #Call by app.py
+def test():
+    downloadTestImages()
+    createTiles([[8,7]])
+    createSplittedTile()
+
+
 def getAllPreview():
     for file in os.listdir(ORIGINAL_PATH):
         createPreview(ORIGINAL_PATH+file)
@@ -131,7 +136,6 @@ def createTiles(tileIds):
 def createSplittedTile():
     for file in os.listdir(TILE_PATH):
         splitTiles(TILE_PATH+file, None, TILE_PIXEL, TILE_SIZE_SPLIT)
-
 
 def getTifInfo(tifPath):
     dataset = gdal.Open(tifPath, gdal.GA_ReadOnly)

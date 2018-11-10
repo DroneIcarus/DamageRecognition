@@ -29,12 +29,16 @@ def splitTiles():
 def downloadTestImages():
     dr.downloadTestImages()
 
+def test():
+    dr.test()
+
 actions = {
 'preview' : preview,
 'gridPreview' : gridPreview,
 'tile': tile,
 'splitTiles': splitTiles,
-'test' : downloadTestImages
+'getTestImages': downloadTestImages,
+'test' : test
 }
 
 if len(sys.argv) > 1:
