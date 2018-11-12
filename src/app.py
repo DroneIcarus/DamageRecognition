@@ -1,5 +1,6 @@
 import os, sys
 import DamageRecognition as dr
+import BuildingRecognition as br
 
 def preview():
     dr.getAllPreview()
@@ -23,22 +24,21 @@ def tile():
         print('Extracting all tiles are not implemented...')
 
 def splitTiles():
-    print('splitTiles')
     dr.createSplittedTile()
 
 def downloadTestImages():
     dr.downloadTestImages()
 
-def test():
-    dr.test()
+def detectBuilding():
+    br.detectBuilding('data/postPreDataSet/', 'data/buildingPredictions')
 
 actions = {
 'preview' : preview,
 'gridPreview' : gridPreview,
 'tile': tile,
 'splitTiles': splitTiles,
-'getTestImages': downloadTestImages,
-'test' : test
+'test' : downloadTestImages,
+'detectBuilding': detectBuilding
 }
 
 if len(sys.argv) > 1:

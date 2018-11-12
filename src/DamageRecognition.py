@@ -7,7 +7,7 @@ from gdalconst import *
 
 #Configuration
 TILE_PIXEL = 1000
-TILE_SIZE_SPLIT = 1000
+TILE_SIZE_SPLIT = 500
 
 #Directories
 DATA_PATH = 'data/'
@@ -16,14 +16,6 @@ PREVIEW_PATH = DATA_PATH + 'preview/'
 GRID_PREVIEW_PATH = DATA_PATH + 'gridPreview/'
 TILE_PATH = DATA_PATH + 'tiles/' #Image corresponding to a square in the gridPreview
 POST_PRE_DATASET_PATH = DATA_PATH + 'postPreDataSet/'
-
-def downloadTestImages():
-    if not os.path.exists( ORIGINAL_PATH + '2130300_pre.tif'):
-        getIm1 = 'curl -o ' + ORIGINAL_PATH + '2130300_pre.tif http://opendata.digitalglobe.com/hurricane-michael/pre-event/2018-07-28/1050010011549F00/2130300.tif'
-        os.system(getIm1)
-    if not os.path.exists( ORIGINAL_PATH + '2130300_post.tif'):
-        getIm2 = 'curl -o ' + ORIGINAL_PATH + '2130300_post.tif http://opendata.digitalglobe.com/hurricane-michael/post-event/2018-10-13/105001001292DF00/2130300.tif'
-        os.system(getIm2)
 
 def readImage(path):
     return cv2.imread(path)
@@ -114,13 +106,16 @@ def splitTiles(tilePath, tileIds, tileSize, splitTileSize):
             #print(POST_PRE_DATASET_PATH + tiffName + '_' + str(x) + '_' + str(y)+".png")
             cv2.imwrite(POST_PRE_DATASET_PATH + tiffName + '_' +tempGps+".png",nextIm)
 
+
 #Call by app.py
-def test():
-    downloadTestImages()
-    createTiles([[8,7]])
-    createSplittedTile()
-
-
+def downloadTestImages():
+    if not os.path.exists( ORIGINAL_PATH + '2130300_pre.tif'):
+        getIm1 = 'curl -o ' + ORIGINAL_PATH + '2130300_pre.tif http://opendata.digitalglobe.com/hurricane-michael/pre-event/2018-07-28/1050010011549F00/2130300.tif'
+        os.system(getIm1)
+    if not os.path.exists( ORIGINAL_PATH + '2130300_post.tif'):
+        getIm2 = 'curl -o ' + ORIGINAL_PATH + '2130300_post.tif http://opendata.digitalglobe.com/hurricane-michael/post-event/2018-10-13/105001001292DF00/2130300.tif'
+        os.system(getIm2)
+        
 def getAllPreview():
     for file in os.listdir(ORIGINAL_PATH):
         createPreview(ORIGINAL_PATH+file)
