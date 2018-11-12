@@ -1,12 +1,12 @@
 import os, sys
-import DamageRecognition as dr
-import BuildingRecognition as br
+from DamageRecognition import DamagePredictor as dp
+from BuildingRecognition import BuildingPredictor as bp
 
 def preview():
-    dr.getAllPreview()
+    dp.getAllPreview()
 
 def gridPreview():
-    dr.createAllGridPreview()
+    dp.createAllGridPreview()
 
 # No parameter : Extract all the tile from the imageName
 # With array of tile position: Extract the selected tile (Example: python app.py tile 1:2,2:10  => Extract the tile 1-2 et 2-10)
@@ -19,18 +19,18 @@ def tile():
         for tile in stringTiles:
             position = tile.split(':')
             selectedTiles.append([int(position[0]),int(position[1])])
-        dr.createTiles(selectedTiles)
+        dp.createTiles(selectedTiles)
     else:
         print('Extracting all tiles are not implemented...')
 
 def splitTiles():
-    dr.createSplittedTile()
+    dp.createSplittedTile()
 
 def downloadTestImages():
-    dr.downloadTestImages()
+    dp.downloadTestImages()
 
 def detectBuilding():
-    br.detectBuilding('data/postPreDataSet/', 'data/buildingPredictions')
+    bp.detectBuilding('data/postPreDataSet/', 'data/buildingPredictions')
 
 actions = {
 'preview' : preview,
@@ -50,4 +50,4 @@ if len(sys.argv) > 1:
 else:
     print('No parameter entered...')
 
-#dr.getAllPreview()
+#dp.getAllPreview()
