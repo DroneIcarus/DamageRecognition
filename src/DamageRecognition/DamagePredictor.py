@@ -102,9 +102,8 @@ def splitTiles(tilePath, tileIds, tileSize, splitTileSize):
             nextIm = im[y:y+splitTileSize,x:x+splitTileSize]
             lat = topLeftGps[0] + pixelRes[1]*y
             long = topLeftGps[1] + pixelRes[0]*x
-            tempGps = str(lat) + ',' + str(long)
-            #print(POST_PRE_DATASET_PATH + tiffName + '_' + str(x) + '_' + str(y)+".png")
-            cv2.imwrite(POST_PRE_DATASET_PATH + tiffName + '_' +tempGps+".png",nextIm)
+            tempGps = str(lat) + '_' + str(long)
+            cv2.imwrite(POST_PRE_DATASET_PATH + str(pixelRes[0]) + '_' +tempGps+".png",nextIm)
 
 
 #Call by app.py
@@ -115,7 +114,7 @@ def downloadTestImages():
     if not os.path.exists( ORIGINAL_PATH + '2130300_post.tif'):
         getIm2 = 'curl -o ' + ORIGINAL_PATH + '2130300_post.tif http://opendata.digitalglobe.com/hurricane-michael/post-event/2018-10-13/105001001292DF00/2130300.tif'
         os.system(getIm2)
-        
+
 def getAllPreview():
     for file in os.listdir(ORIGINAL_PATH):
         createPreview(ORIGINAL_PATH+file)
