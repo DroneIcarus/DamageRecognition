@@ -82,6 +82,15 @@ def createSplittedTile():
 def getTifInfo(tifPath):
     return GeotiffHelper.getTifInfo(tifPath)
 
+def dev():
+    print('dev...')
+    data = fh.csvToDict(Global.DAMAGE_PREDICTION_PATH + 'buildings.csv')
+    print('data[0]',data[0]['Id'] )
+    print('len(data)',len(data))
+
+
+
+
 def init():
     if not os.path.exists(Global.DATA_PATH):
         print('Creating %s path'%(Global.DATA_PATH))

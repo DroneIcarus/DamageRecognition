@@ -33,7 +33,7 @@ def detectBuilding():
     bp.detectBuilding('data/postPreDataSet/', 'data/buildingPredictions')
 
 def dev():
-    dp.banana()
+    dp.dev()
 
 actions = {
 'preview' : preview,

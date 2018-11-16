@@ -42,24 +42,14 @@ from mrcnn.config import Config
 from mrcnn import model as modellib, utils
 from Helper import GeotiffHelper as gh
 from Helper import FileHelper as fh
+from Helper.BoundingBoxGPS import BoundingBoxGPS
+from Helper.BuildingPrediction import BuildingPrediction
 import Global as Global
 
 PRETRAINED_MODEL_PATH = os.path.join(ROOT_DIR,"data/" "pretrained_weights.h5")
 LOGS_DIRECTORY = os.path.join(ROOT_DIR, "logs")
 MODEL_DIR = os.path.join(ROOT_DIR, "logs")
 IMAGE_DIR = os.path.join(ROOT_DIR, "data", "test", "images")
-
-class BoudingBoxGPS:
-    def __init__(self, lat1, long1, lat2, long2):
-        #Left Upper Corner
-        self.lat1 = lat1
-        self.long1 = long1
-        #Right Down Corner
-        self.lat2 = lat2
-        self.long2 = long2
-
-    def toJSON(self):
-        return json.dumps(self.__dict__)
 
 class InferenceConfig(coco.CocoConfig):
     # Set batch size to 1 since we'll be running inference on
@@ -71,12 +61,12 @@ class InferenceConfig(coco.CocoConfig):
     IMAGE_MIN_DIM=320
     NAME = "crowdai-mapping-challenge"
 
-def getBoudingBoxGPS(startLat, startLong, pixelResolution, pixelBoudingBox):
+def getBoundingBoxGPS(startLat, startLong, pixelResolution, pixelBoudingBox):
     lat1 = gh.pixelToGpsCoordinate(startLat, pixelResolution, pixelBoudingBox[0])
     long1 = gh.pixelToGpsCoordinate(startLong, pixelResolution, pixelBoudingBox[1])
     lat2 = gh.pixelToGpsCoordinate(startLat, pixelResolution, pixelBoudingBox[2])
     long2 = gh.pixelToGpsCoordinate(startLong, pixelResolution, pixelBoudingBox[3])
-    return BoudingBoxGPS(lat1, long1, lat2, long2)
+    return BoundingBoxGPS(lat1, long1, lat2, long2)
 
 def predict(imageDirectory, resultDirectory):
     config = InferenceConfig()
@@ -93,7 +83,7 @@ def predict(imageDirectory, resultDirectory):
 
     csvName = Global.PREDICTIONS_PATH + fh.getTimeStamp() + '.csv'
     #Create csv file to append the builing predictions
-    fh.arrayToCsv(csvName, [['Id', ' FileName', ' Prediction']])
+    fh.arrayToCsv(csvName, [['BuildingPrediction']])
 
     for fileIndex in range(0, nbFiles, config.BATCH_SIZE):
         images = []
@@ -119,8 +109,11 @@ def predict(imageDirectory, resultDirectory):
             p = predictions[j]
             imageResult = visualize.display_instances(images[j], p['rois'], p['masks'], p['class_ids'], class_names, p['scores'])
             for z in range(0,len(p['rois'])):
-                boundingBox = getBoudingBoxGPS(lat, long, resolution, p['rois'][z])
-                predictionsToAdd.append([str(fileIndex+j), file_names[fileIndex+j], boundingBox.toJSON()])
+                boundingBox = getBoundingBoxGPS(lat, long, resolution, p['rois'][z])
+                buildingPred = BuildingPrediction(str(fileIndex+j), boundingBox)
+                predictionsToAdd.append([buildingPred.toJSON()])
+                # pixelBox = gh.gpsBoundingBoxToPixelArray(boundingBox, lat, long, resolution)
+                # predictionsToAdd.append([str(fileIndex+j), file_names[fileIndex+j], boundingBox.toJSON(), str(p['rois'][z]), pixelBox])
             imageResult.show()
             imageResult.savefig(resultPath)
         fh.arrayToCsv(csvName, predictionsToAdd)

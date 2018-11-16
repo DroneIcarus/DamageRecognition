@@ -4,6 +4,7 @@ from osgeo import gdal
 from gdalconst import *
 import Global as Global
 from Helper import FileHelper as fh
+from Helper.BoundingBoxGPS import BoundingBoxGPS
 
 def createPreview(imageToPreviewPath, resultDirectoryPath):
     im = cv2.imread(imageToPreviewPath, 3)
@@ -54,6 +55,21 @@ def pixelToGpsCoordinate(startCoordinate, pixelResolution, pixelPosition):
     if startCoordinate > 0:
         delta = delta * -1
     return startCoordinate + delta
+
+def gpsCoordinateToPixel(startGpsCoordinate, resolution, pixelGpsCoordinate):
+    delta = (startGpsCoordinate - pixelGpsCoordinate)
+    if startGpsCoordinate < 0:
+        delta = delta * -1
+    return delta / resolution
+
+#Input: BoundingBoxGPS  => Output: Array :[x1(lat1) y1(long1) x2(lat2) y2(long2)]
+def gpsBoundingBoxToPixelArray(boundingBoxGPS, startLat, startLong, resolution):
+    x1 = gpsCoordinateToPixel(startLat, resolution, boundingBoxGPS.lat1)
+    y1 = gpsCoordinateToPixel(startLong, resolution, boundingBoxGPS.long1)
+    x2 = gpsCoordinateToPixel(startLat, resolution, boundingBoxGPS.lat2)
+    y2 = gpsCoordinateToPixel(startLong, resolution, boundingBoxGPS.long2)
+    pixelBoundingBox = [int(round(x1)), int(round(y1)), int(round(x2)), int(round(y2))]
+    return pixelBoundingBox
 
 def getTifInfo(tifPath):
     dataset = gdal.Open(tifPath, gdal.GA_ReadOnly)
