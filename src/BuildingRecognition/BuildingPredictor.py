@@ -40,15 +40,14 @@ import json
 # Import Mask RCNN
 from mrcnn.config import Config
 from mrcnn import model as modellib, utils
+from Helper import GeotiffHelper as gh
+from Helper import FileHelper as fh
+import Global as Global
 
 PRETRAINED_MODEL_PATH = os.path.join(ROOT_DIR,"data/" "pretrained_weights.h5")
 LOGS_DIRECTORY = os.path.join(ROOT_DIR, "logs")
 MODEL_DIR = os.path.join(ROOT_DIR, "logs")
 IMAGE_DIR = os.path.join(ROOT_DIR, "data", "test", "images")
-
-#Directories
-DATA_PATH = 'data/'
-PREDICTIONS_PATH = DATA_PATH + 'buildingPredictions/'
 
 class BoudingBoxGPS:
     def __init__(self, lat1, long1, lat2, long2):
@@ -60,7 +59,6 @@ class BoudingBoxGPS:
         self.long2 = long2
 
     def toJSON(self):
-
         return json.dumps(self.__dict__)
 
 class InferenceConfig(coco.CocoConfig):
@@ -73,32 +71,11 @@ class InferenceConfig(coco.CocoConfig):
     IMAGE_MIN_DIM=320
     NAME = "crowdai-mapping-challenge"
 
-def getTimeStamp():
-    now = datetime.datetime.now()
-    return "%d-%d-%d-%d-%d"%(now.year, now.month, now.day, now.hour, now.minute)
-
-def arrayToCsv(fileName, data):
-    with open(fileName, 'w') as file:
-        writer = csv.writer(file)
-        writer.writerows(data)
-
-def appendArrayToCsv(fileName, data):
-    with open(fileName, 'a') as file:
-        if len(data) > 0:
-            writer = csv.writer(file)
-            writer.writerows(data)
-
-def pixelToGpsCoordinate(startCoordinate, pixelResolution, pixelPosition):
-    delta = pixelResolution*pixelPosition
-    if startCoordinate > 0:
-        delta = delta * -1
-    return startCoordinate + delta
-
 def getBoudingBoxGPS(startLat, startLong, pixelResolution, pixelBoudingBox):
-    lat1 = pixelToGpsCoordinate(startLat, pixelResolution, pixelBoudingBox[0])
-    long1 = pixelToGpsCoordinate(startLong, pixelResolution, pixelBoudingBox[1])
-    lat2 = pixelToGpsCoordinate(startLat, pixelResolution, pixelBoudingBox[2])
-    long2 = pixelToGpsCoordinate(startLong, pixelResolution, pixelBoudingBox[3])
+    lat1 = gh.pixelToGpsCoordinate(startLat, pixelResolution, pixelBoudingBox[0])
+    long1 = gh.pixelToGpsCoordinate(startLong, pixelResolution, pixelBoudingBox[1])
+    lat2 = gh.pixelToGpsCoordinate(startLat, pixelResolution, pixelBoudingBox[2])
+    long2 = gh.pixelToGpsCoordinate(startLong, pixelResolution, pixelBoudingBox[3])
     return BoudingBoxGPS(lat1, long1, lat2, long2)
 
 def predict(imageDirectory, resultDirectory):
@@ -114,9 +91,9 @@ def predict(imageDirectory, resultDirectory):
     file_names = next(os.walk(imageDirectory))[2]
     nbFiles = len(file_names)
 
-    csvName = PREDICTIONS_PATH + getTimeStamp() + '.csv'
+    csvName = Global.PREDICTIONS_PATH + fh.getTimeStamp() + '.csv'
     #Create csv file to append the builing predictions
-    arrayToCsv(csvName, [['Id', ' FileName', ' Prediction']])
+    fh.arrayToCsv(csvName, [['Id', ' FileName', ' Prediction']])
 
     for fileIndex in range(0, nbFiles, config.BATCH_SIZE):
         images = []
@@ -140,20 +117,20 @@ def predict(imageDirectory, resultDirectory):
             predictionsToAdd = []
             resultPath = os.path.join(resultDirectory, file_names[fileIndex+j])
             p = predictions[j]
-            # imageResult = visualize.display_instances(images[j], p['rois'], p['masks'], p['class_ids'], class_names, p['scores'])
+            imageResult = visualize.display_instances(images[j], p['rois'], p['masks'], p['class_ids'], class_names, p['scores'])
             for z in range(0,len(p['rois'])):
                 boundingBox = getBoudingBoxGPS(lat, long, resolution, p['rois'][z])
                 predictionsToAdd.append([str(fileIndex+j), file_names[fileIndex+j], boundingBox.toJSON()])
-            # imageResult.show()
-            # imageResult.savefig(resultPath)
-        appendArrayToCsv(csvName, predictionsToAdd)
+            imageResult.show()
+            imageResult.savefig(resultPath)
+        fh.arrayToCsv(csvName, predictionsToAdd)
 
 def detectBuilding(directoryPath, resultDirectory):
     predict(directoryPath, resultDirectory)
 
 def init():
-    if not os.path.exists(PREDICTIONS_PATH):
-        print('Creating %s path'%(PREDICTIONS_PATH))
-        os.makedirs(PREDICTIONS_PATH)
+    if not os.path.exists(Global.PREDICTIONS_PATH):
+        print('Creating %s path'%(Global.PREDICTIONS_PATH))
+        os.makedirs(Global.PREDICTIONS_PATH)
 
 init()

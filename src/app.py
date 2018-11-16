@@ -32,13 +32,17 @@ def downloadTestImages():
 def detectBuilding():
     bp.detectBuilding('data/postPreDataSet/', 'data/buildingPredictions')
 
+def dev():
+    dp.banana()
+
 actions = {
 'preview' : preview,
 'gridPreview' : gridPreview,
 'tile': tile,
 'splitTiles': splitTiles,
 'test' : downloadTestImages,
-'detectBuilding': detectBuilding
+'detectBuilding': detectBuilding,
+'dev': dev
 }
 
 if len(sys.argv) > 1:

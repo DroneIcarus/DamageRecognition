@@ -1,6 +1,20 @@
 import sys, os
 from osgeo import gdal
 from gdalconst import *
+import Global as Global
+
+def createPreview(filePath):
+    im = cv2.imread(filePath, 3)
+    out = cv2.resize(im,(1000,1000))
+    im = None
+    file = extractFileNameAndExtension(filePath)
+    cv2.imwrite(Global.PREVIEW_PATH+file,out)
+
+def pixelToGpsCoordinate(startCoordinate, pixelResolution, pixelPosition):
+    delta = pixelResolution*pixelPosition
+    if startCoordinate > 0:
+        delta = delta * -1
+    return startCoordinate + delta
 
 def getTifInfo(tifPath):
     dataset = gdal.Open(tifPath, gdal.GA_ReadOnly)
