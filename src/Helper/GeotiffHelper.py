@@ -1,14 +1,53 @@
 import sys, os
+import cv2
 from osgeo import gdal
 from gdalconst import *
 import Global as Global
+from Helper import FileHelper as fh
 
-def createPreview(filePath):
-    im = cv2.imread(filePath, 3)
+def createPreview(imageToPreviewPath, resultDirectoryPath):
+    im = cv2.imread(imageToPreviewPath, 3)
     out = cv2.resize(im,(1000,1000))
     im = None
-    file = extractFileNameAndExtension(filePath)
-    cv2.imwrite(Global.PREVIEW_PATH+file,out)
+    file = fh.extractFileNameAndExtension(imageToPreviewPath)
+    cv2.imwrite(resultDirectoryPath+file,out)
+
+def createGridPreview(imageToPreviewPath, resultDirectoryPath, tileSize):
+    im = cv2.imread(imageToPreviewPath)
+    imageName = fh.extractFileName(imageToPreviewPath)
+
+    imgheight=im.shape[0]
+    imgwidth=im.shape[1]
+    #Number of tiles
+    nbY = imgheight / tileSize
+    nbX = imgwidth / tileSize
+
+    #Resize
+    im = cv2.resize(im,(int(imgheight//nbY),int(imgwidth//nbX)))
+    imgheight=im.shape[0]
+    imgwidth=im.shape[1]
+
+    tileHeight = int(imgheight//nbY)
+    tileWidth = int(imgwidth//nbX)
+    y1 = 0
+    x1 = 0
+    #Draw a rectangle for each tile
+    for y in range(0,imgheight,tileHeight):
+        for x in range(0, imgwidth, tileWidth):
+            y1 = y + tileHeight
+            x1 = x + tileWidth
+            tiles = im[y:y+tileHeight,x:x+tileWidth]
+            cv2.rectangle(im, (x, y), (x1, y1), (0, 0, 255))
+    cv2.imwrite(resultDirectoryPath + imageName + '.png',im)
+
+def extractSubImage(tiffPath, resultDirectoryPath, x, y, width, height):
+    base = os.path.basename(tiffPath)
+    tiffName = os.path.splitext(base)[0]
+    tileFileName = resultDirectoryPath + tiffName + "_" + str(x)+"_"+str(y)+".tif"
+    gdaltranString = "gdal_translate -of GTIFF -srcwin "+str(x)+", "+str(y)+", "+str(width)+", " \
+        +str(height)+ " " + tiffPath + " " + tileFileName
+    os.system(gdaltranString)
+    return tileFileName
 
 def pixelToGpsCoordinate(startCoordinate, pixelResolution, pixelPosition):
     delta = pixelResolution*pixelPosition

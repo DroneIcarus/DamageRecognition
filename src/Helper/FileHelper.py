@@ -22,3 +22,10 @@ def arrayToCsv(fileName, data):
     with open(fileName, writingOption) as file:
         writer = csv.writer(file)
         writer.writerows(data)
+
+def extractFileName(filePath):
+    base = os.path.basename(filePath)
+    return os.path.splitext(base)[0]
+
+def extractFileNameAndExtension(filePath):
+    return os.path.basename(filePath)

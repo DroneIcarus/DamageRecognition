@@ -6,6 +6,7 @@ import sys, os
 from gdalconst import *
 
 from Helper import GeotiffHelper as GeotiffHelper
+from Helper import FileHelper as fh
 import Global as Global
 
 #Configuration
@@ -15,58 +16,16 @@ TILE_SIZE_SPLIT = 500
 def readImage(path):
     return cv2.imread(path)
 
-def extractFileName(filePath):
-    base = os.path.basename(filePath)
-    return os.path.splitext(base)[0]
-
-def extractFileNameAndExtension(filePath):
-    return os.path.basename(filePath)
-
 def createPreview(filePath):
-    im = cv2.imread(filePath, 3)
-    out = cv2.resize(im,(1000,1000))
-    im = None
-    file = extractFileNameAndExtension(filePath)
-    cv2.imwrite(Global.PREVIEW_PATH+file,out)
-
+    GeotiffHelper.createPreview(filePath, Global.PREVIEW_PATH)
+#
 def createGridPreview(filePath):
-    im = readImage(filePath)
-    imageName = extractFileName(filePath)
-
-    imgheight=im.shape[0]
-    imgwidth=im.shape[1]
-    #Number of tiles
-    nbY = imgheight / TILE_PIXEL
-    nbX = imgwidth / TILE_PIXEL
-
-    #Resize
-    im = cv2.resize(im,(int(imgheight//nbY),int(imgwidth//nbX)))
-    imgheight=im.shape[0]
-    imgwidth=im.shape[1]
-
-    tileHeight = int(imgheight//nbY)
-    tileWidth = int(imgwidth//nbX)
-    y1 = 0
-    x1 = 0
-    #Draw a rectangle for each tile
-    for y in range(0,imgheight,tileHeight):
-        for x in range(0, imgwidth, tileWidth):
-            y1 = y + tileHeight
-            x1 = x + tileWidth
-            tiles = im[y:y+tileHeight,x:x+tileWidth]
-            cv2.rectangle(im, (x, y), (x1, y1), (0, 0, 255))
-    cv2.imwrite(Global.GRID_PREVIEW_PATH + imageName + '.png',im)
+    GeotiffHelper.createGridPreview(filePath, Global.GRID_PREVIEW_PATH, TILE_PIXEL)
 
 def extractTile(tiffFile, xTile, yTile, tileSize):
-    base = os.path.basename(tiffFile)
-    tiffName = os.path.splitext(base)[0]
-    i = (xTile - 1 ) * tileSize
-    j = (yTile - 1 ) * tileSize
-    tileFileName = TILE_PATH + tiffName + "_" + str(i)+"_"+str(j)+".tif"
-    gdaltranString = "gdal_translate -of GTIFF -srcwin "+str(i)+", "+str(j)+", "+str(tileSize)+", " \
-        +str(tileSize)+ " " + tiffFile + " " + tileFileName
-    os.system(gdaltranString)
-    return tileFileName
+    x = (xTile - 1 ) * tileSize
+    y = (yTile - 1 ) * tileSize
+    return GeotiffHelper.extractSubImage(tiffFile, Global.TILE_PATH, x, y, TILE_PIXEL, TILE_PIXEL)
 
 def extractTiles(tiffFile, tileIds, tileSize):
     extractedTiles = []
@@ -75,10 +34,7 @@ def extractTiles(tiffFile, tileIds, tileSize):
         extractedTiles.append(extractedTile)
     return extractedTiles
 
-def splitTiles(tilePath, tileIds, tileSize, splitTileSize):
-    #extractedTiles = extractTiles(tiffFilePath, tileIds, tileSize)
-    #for tile in extractedTiles:
-    #print('tile',tile)
+def splitTile(tilePath, tileIds, tileSize, splitTileSize):
     base = os.path.basename(tilePath)
     tiffName = os.path.splitext(base)[0]
     gdaltranString = 'gdal_translate -of GTiff -outsize 3000 3000 -r bilinear ' + tilePath + ' resample.tif'
@@ -124,7 +80,7 @@ def createTiles(tileIds):
 
 def createSplittedTile():
     for file in os.listdir(Global.TILE_PATH):
-        splitTiles(Global.TILE_PATH+file, None, TILE_PIXEL, TILE_SIZE_SPLIT)
+        splitTile(Global.TILE_PATH+file, None, TILE_PIXEL, TILE_SIZE_SPLIT)
 
 def getTifInfo(tifPath):
     return GeotiffHelper.getTifInfo(tifPath)
