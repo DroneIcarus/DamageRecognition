@@ -106,3 +106,10 @@ def getTifInfo(tifPath):
         'topRightCoordinate': topRightCoordinate,
         'bottomRightCoordinate': bottomRightCoordinate
         }
+
+def resizeTiff(imageToResizePath, resizedImagePath, resizeFactor):
+    im = cv2.imread(imageToResizePath)
+    imgheight = im.shape[0] * resizeFactor
+    imgwidth = im.shape[1] * resizeFactor
+    gdaltranString = 'gdal_translate -of GTiff -outsize ' + str(imgwidth) + ' ' + str(imgheight) +' -r bilinear ' + imageToResizePath + ' ' + resizedImagePath
+    os.system(gdaltranString)

@@ -18,7 +18,7 @@ def readImage(path):
 
 def createPreview(filePath):
     GeotiffHelper.createPreview(filePath, Global.PREVIEW_PATH)
-#
+
 def createGridPreview(filePath):
     GeotiffHelper.createGridPreview(filePath, Global.GRID_PREVIEW_PATH, TILE_PIXEL)
 
@@ -34,16 +34,13 @@ def extractTiles(tiffFile, tileIds, tileSize):
         extractedTiles.append(extractedTile)
     return extractedTiles
 
-def splitTile(tilePath, tileIds, tileSize, splitTileSize):
-    base = os.path.basename(tilePath)
-    tiffName = os.path.splitext(base)[0]
-    gdaltranString = 'gdal_translate -of GTiff -outsize 3000 3000 -r bilinear ' + tilePath + ' resample.tif'
-    result = os.system(gdaltranString)
-    tifInfo = getTifInfo('resample.tif')
+def splitTile(tilePath, tileSize, splitTileSize):
+    resizedTiffPath = 'resizeTiffTmp.tif'
+    GeotiffHelper.resizeTiff(tilePath, resizedTiffPath, 3)
+    tifInfo = getTifInfo(resizedTiffPath)
     pixelRes = tifInfo['pixelResolution']
     topLeftGps = tifInfo['topLeftCoordinate']
-    im =  readImage('resample.tif')
-
+    im =  readImage(resizedTiffPath)
     imgheight=im.shape[0]
     imgwidth=im.shape[1]
     x = 0
@@ -80,7 +77,7 @@ def createTiles(tileIds):
 
 def createSplittedTile():
     for file in os.listdir(Global.TILE_PATH):
-        splitTile(Global.TILE_PATH+file, None, TILE_PIXEL, TILE_SIZE_SPLIT)
+        splitTile(Global.TILE_PATH+file, TILE_PIXEL, TILE_SIZE_SPLIT)
 
 def getTifInfo(tifPath):
     return GeotiffHelper.getTifInfo(tifPath)
