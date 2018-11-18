@@ -3,11 +3,15 @@ import matplotlib.pyplot
 from osgeo import gdal
 import numpy
 import sys, os
+import json
 from gdalconst import *
 
 from Helper import GeotiffHelper as GeotiffHelper
 from Helper import FileHelper as fh
 import Global as Global
+#Class
+from Helper.BuildingPrediction import BuildingPrediction
+from Helper.BoundingBoxGPS import BoundingBoxGPS
 
 #Configuration
 TILE_PIXEL = 1000
@@ -85,11 +89,13 @@ def getTifInfo(tifPath):
 def dev():
     print('dev...')
     data = fh.csvToDict(Global.DAMAGE_PREDICTION_PATH + 'buildings.csv')
-    print('data[0]',data[0]['Id'] )
-    print('len(data)',len(data))
 
-
-
+    if 'BuildingPrediction' in data[0]:
+        damPred = json.loads(data[0]['BuildingPrediction'])
+        bBox = BoundingBoxGPS(damPred['BoundingBox']['lat1'], damPred['BoundingBox']['long1'], damPred['BoundingBox']['lat2'], damPred['BoundingBox']['long2'])
+        buildPred = BuildingPrediction(damPred['Id'], bBox)
+    else:
+        print("There is no columns 'BuildingPrediction' in the CSV file...")
 
 def init():
     if not os.path.exists(Global.DATA_PATH):

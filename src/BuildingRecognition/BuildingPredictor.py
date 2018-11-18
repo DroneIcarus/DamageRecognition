@@ -112,8 +112,6 @@ def predict(imageDirectory, resultDirectory):
                 boundingBox = getBoundingBoxGPS(lat, long, resolution, p['rois'][z])
                 buildingPred = BuildingPrediction(str(fileIndex+j), boundingBox)
                 predictionsToAdd.append([buildingPred.toJSON()])
-                # pixelBox = gh.gpsBoundingBoxToPixelArray(boundingBox, lat, long, resolution)
-                # predictionsToAdd.append([str(fileIndex+j), file_names[fileIndex+j], boundingBox.toJSON(), str(p['rois'][z]), pixelBox])
             imageResult.show()
             imageResult.savefig(resultPath)
         fh.arrayToCsv(csvName, predictionsToAdd)

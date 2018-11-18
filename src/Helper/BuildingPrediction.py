@@ -1,4 +1,6 @@
+import json
 from Helper.BoundingBoxGPS import BoundingBoxGPS
+from Helper.ComplexEncoder import ComplexEncoder
 
 class BuildingPrediction:
     def __init__(self, id, boundingBox):
@@ -6,4 +8,7 @@ class BuildingPrediction:
         self.BoundingBox = boundingBox
 
     def toJSON(self):
-        return {"Id":self.Id, "BoundingBox": self.BoundingBox.toJSON()}
+        return json.dumps(self.reprJSON(), cls=ComplexEncoder)
+
+    def reprJSON(self):
+        return dict(Id=self.Id, BoundingBox=self.BoundingBox)
