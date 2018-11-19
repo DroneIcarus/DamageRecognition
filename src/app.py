@@ -1,4 +1,5 @@
 import os, sys
+import Global as Global
 from DamageRecognition import DamagePredictor as dp
 from BuildingRecognition import BuildingPredictor as bp
 
@@ -30,8 +31,29 @@ def downloadTestImages():
     dp.downloadTestImages()
 
 def detectBuilding():
-    bp.detectBuilding('data/postPreDataSet/', 'data/buildingPredictions')
+    bp.detectBuilding(Global.POST_PRE_DATASET_PATH, Global.PREDICTIONS_PATH)
 
+def buildDataset():
+    print('############################################')
+    print('Downloading the post and pre disaster satellite image')
+    print('############################################')
+    dp.downloadTestImages()
+    print('############################################')
+    print('Get some tiles from the pre disaster image')
+    print('############################################')
+    dp.createDataSetTiles()
+    print('############################################')
+    print('Splitting tiles into small image for the building recogniton')
+    print('############################################')
+    dp.createDatasetSplittedTile()
+    print('############################################')
+    print('Detecting building from the images extracted from the tiles')
+    print('############################################')
+    bp.detectBuilding(Global.PRE_BUILDING_PATH, Global.PRE_BUILDING_RESULT_PATH, resultCsvName=Global.BUILDING_CSV_NAME)
+    print('############################################')
+    print('Draw building on the tile images')
+    print('############################################')
+    dp.drawBuildingOnTile(Global.PRE_BUILDING_RESULT_PATH+Global.BUILDING_CSV_NAME+'.csv', Global.TILE_PREDISASTER_PATH, Global.PRE_BUILDING_RESULT_PATH)
 def dev():
     dp.dev()
 
@@ -42,6 +64,7 @@ actions = {
 'splitTiles': splitTiles,
 'test' : downloadTestImages,
 'detectBuilding': detectBuilding,
+'buildDataset' : buildDataset,
 'dev': dev
 }
 

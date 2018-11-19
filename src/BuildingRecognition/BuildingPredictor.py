@@ -3,6 +3,7 @@ import sys
 import time
 import datetime
 import csv
+import shutil
 import numpy as np
 
 DIR_PROJECT = os.getcwd()
@@ -68,7 +69,7 @@ def getBoundingBoxGPS(startLat, startLong, pixelResolution, pixelBoudingBox):
     long2 = gh.pixelToGpsCoordinate(startLong, pixelResolution, pixelBoudingBox[3])
     return BoundingBoxGPS(lat1, long1, lat2, long2)
 
-def predict(imageDirectory, resultDirectory):
+def predict(imageDirectory, resultDirectory, resultCsvName='buildings'):
     config = InferenceConfig()
     # config.display()
 
@@ -80,12 +81,12 @@ def predict(imageDirectory, resultDirectory):
 
     file_names = next(os.walk(imageDirectory))[2]
     nbFiles = len(file_names)
-
-    csvName = Global.PREDICTIONS_PATH + fh.getTimeStamp() + '.csv'
+    csvName = resultDirectory + fh.getTimeStamp() + '.csv'
     #Create csv file to append the builing predictions
     fh.arrayToCsv(csvName, [['BuildingPrediction']])
 
     for fileIndex in range(0, nbFiles, config.BATCH_SIZE):
+        print()
         images = []
         reste = nbFiles - (fileIndex+config.BATCH_SIZE)
         for i in range(0, config.BATCH_SIZE):
@@ -94,9 +95,9 @@ def predict(imageDirectory, resultDirectory):
             images.append(im)
 
         predictions = model.detect(images, verbose=1) # We are replicating the same image to fill up the batch_size
-
         if reste < 0:
             del predictions[reste:]
+
         for j in range(0, len(predictions)):
             base = os.path.basename(file_names[fileIndex+j])
             imStringInfo = os.path.splitext(base)[0]
@@ -107,17 +108,21 @@ def predict(imageDirectory, resultDirectory):
             predictionsToAdd = []
             resultPath = os.path.join(resultDirectory, file_names[fileIndex+j])
             p = predictions[j]
-            imageResult = visualize.display_instances(images[j], p['rois'], p['masks'], p['class_ids'], class_names, p['scores'])
+            #imageResult = visualize.display_instances(images[j], p['rois'], p['masks'], p['class_ids'], class_names, p['scores'])
             for z in range(0,len(p['rois'])):
                 boundingBox = getBoundingBoxGPS(lat, long, resolution, p['rois'][z])
                 buildingPred = BuildingPrediction(str(fileIndex+j), boundingBox)
                 predictionsToAdd.append([buildingPred.toJSON()])
-            imageResult.show()
-            imageResult.savefig(resultPath)
-        fh.arrayToCsv(csvName, predictionsToAdd)
+            # imageResult.show()
+            # imageResult.savefig(resultPath)
 
-def detectBuilding(directoryPath, resultDirectory):
-    predict(directoryPath, resultDirectory)
+            fh.arrayToCsv(csvName, predictionsToAdd)
+    if os.path.exists(resultDirectory + resultCsvName + '.csv'):
+        os.remove(resultDirectory + resultCsvName + '.csv')
+    shutil.copyfile(csvName, resultDirectory + resultCsvName + '.csv') 
+
+def detectBuilding(directoryPath, resultDirectory, resultCsvName=None):
+    predict(directoryPath, resultDirectory, resultCsvName)
 
 def init():
     if not os.path.exists(Global.PREDICTIONS_PATH):
