@@ -23,6 +23,18 @@ def arrayToCsv(fileName, data):
         writer = csv.writer(file)
         writer.writerows(data)
 
+def csvToDict(csvPath, _delimiter=','):
+    data = []
+    with open(csvPath, mode='r') as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        line_count = 0
+        for row in csv_reader:
+            #if line_count == 0:
+                #print(f'Column names are {", ".join(row)}')
+            data.append(row)
+            line_count += 1
+    return data
+
 def extractFileName(filePath):
     base = os.path.basename(filePath)
     return os.path.splitext(base)[0]
