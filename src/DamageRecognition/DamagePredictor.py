@@ -1,7 +1,7 @@
 import cv2
 import matplotlib.pyplot
 from osgeo import gdal
-import numpy
+import numpy as np
 import sys, os
 import json
 from gdalconst import *
@@ -112,6 +112,54 @@ def drawBuildingOnTile(csvBuildingPath, tilesPath, imageResultPath):
                     cv2.rectangle(im, (pt1[1], pt1[0]), (pt1[3], pt1[2]), (0, 0, 255))
             cv2.imwrite(imageResultPath+fh.extractFileName(file)+'.png',im)
 
+def extractBuildingImage(csvBuildingPath, preDisasterPath, postDisasterPath, imageResultPath):
+    data = fh.csvToDict(csvBuildingPath)
+
+    preTifInfo = getTifInfo(preDisasterPath)
+    postTifInfo = getTifInfo(postDisasterPath)
+
+    preResolution = preTifInfo['pixelResolution'][0]
+    postResolution = postTifInfo['pixelResolution'][0]
+    preTopLeft = preTifInfo['topLeftCoordinate']
+    postTopLeft = postTifInfo['topLeftCoordinate']
+
+    preIm = readImage(preDisasterPath)
+    postIm = readImage(postDisasterPath)
+
+    for line in data:
+        if 'BuildingPrediction' in line:
+            damPred = json.loads(line['BuildingPrediction'])
+            id = damPred['Id']
+            bBox = BoundingBoxGPS(damPred['BoundingBox']['lat1'], damPred['BoundingBox']['long1'], damPred['BoundingBox']['lat2'], damPred['BoundingBox']['long2'])
+            buildPred = BuildingPrediction(damPred['Id'], bBox)
+
+            prePt = GeotiffHelper.gpsBoundingBoxToPixelArray(bBox, preTopLeft[0], preTopLeft[1], preResolution)
+            buildingWidth = prePt[2] - prePt[0]
+            buildingHeight = prePt[3] - prePt[1]
+
+            deltaX = Global.DATASET_IMAGE_SIZE_BUILDING - buildingWidth
+            deltaY = Global.DATASET_IMAGE_SIZE_BUILDING - buildingHeight
+
+            # x = max(0, prePt[1] - int(deltaX/2))
+            # y = max(0, prePt[0] - int(deltaY/2))
+            # GeotiffHelper.extractSubImage(preDisasterPath, imageResultPath, x, y, Global.DATASET_IMAGE_SIZE_BUILDING, Global.DATASET_IMAGE_SIZE_BUILDING)
+
+            x = max(0, prePt[1] - 25)
+            y = max(0, prePt[0] - 25)
+            # GeotiffHelper.extractSubImage(preDisasterPath, imageResultPath, x, y, buildingWidth+50, buildingHeight+50)
+            blackImg = np.zeros((300,300,3), np.uint8)
+            blackImg2 = np.zeros((300,300,3), np.uint8)
+            building_img = GeotiffHelper.extractSubImageToArray(preIm, x, y, buildingWidth+50, buildingHeight+50)
+            building_img2 = GeotiffHelper.extractSubImageToArray(postIm, x, y, buildingWidth+50, buildingHeight+50)
+
+            blackImg[0:buildingHeight+50, 0:buildingWidth+50] = building_img
+            blackImg2[0:buildingHeight+50, 0:buildingWidth+50] = building_img2
+            cv2.imwrite(imageResultPath+str(id)+'_A' + '.png', blackImg)
+            cv2.imwrite(imageResultPath+str(id)+'_B' + '.png', blackImg2)
+
+
+            # GeotiffHelper.extractSubImageToArray(preIm, x, y, buildingWidth+50, buildingHeight+50, resultDirectoryPath=imageResultPath+str(x)+'_'+str(y))
+
 def dev():
     print('dev...')
     data = fh.csvToDict(Global.DAMAGE_PREDICTION_PATH + 'buildings.csv')
@@ -167,4 +215,8 @@ def init():
     if not os.path.exists(Global.PRE_BUILDING_RESULT_PATH):
         print('Creating %s path'%(Global.PRE_BUILDING_RESULT_PATH))
         os.makedirs(Global.PRE_BUILDING_RESULT_PATH)
+    if not os.path.exists(Global.TRAIN_DATASET_PATH):
+        print('Creating %s path'%(Global.TRAIN_DATASET_PATH))
+        os.makedirs(Global.TRAIN_DATASET_PATH)
+
 init()

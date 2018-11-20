@@ -54,6 +54,12 @@ def buildDataset():
     print('Draw building on the tile images')
     print('############################################')
     dp.drawBuildingOnTile(Global.PRE_BUILDING_RESULT_PATH+Global.BUILDING_CSV_NAME+'.csv', Global.TILE_PREDISASTER_PATH, Global.PRE_BUILDING_RESULT_PATH)
+    print('############################################')
+    print('Get image of same size with detected building on the center')
+    print('############################################')
+    dp.extractBuildingImage(Global.PRE_BUILDING_RESULT_PATH+Global.BUILDING_CSV_NAME+'.csv', Global.ORIGINAL_PATH+'2130300_pre.tif', Global.ORIGINAL_PATH+'2130300_post.tif', Global.TRAIN_DATASET_PATH)
+
+
 def dev():
     dp.dev()
 

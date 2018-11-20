@@ -41,6 +41,12 @@ def createGridPreview(imageToPreviewPath, resultDirectoryPath, tileSize):
             cv2.rectangle(im, (x, y), (x1, y1), (0, 0, 255))
     cv2.imwrite(resultDirectoryPath + imageName + '.png',im)
 
+def extractSubImageToArray(im, x, y, width, height, resultDirectoryPath=None):
+    crop_img = im[y:y+height, x:x+width]
+    if resultDirectoryPath:
+        cv2.imwrite(resultDirectoryPath + '.png', crop_img)
+    return crop_img
+
 def extractSubImage(tiffPath, resultDirectoryPath, x, y, width, height):
     base = os.path.basename(tiffPath)
     tiffName = os.path.splitext(base)[0]

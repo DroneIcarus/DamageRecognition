@@ -109,17 +109,19 @@ def predict(imageDirectory, resultDirectory, resultCsvName='buildings'):
             resultPath = os.path.join(resultDirectory, file_names[fileIndex+j])
             p = predictions[j]
             #imageResult = visualize.display_instances(images[j], p['rois'], p['masks'], p['class_ids'], class_names, p['scores'])
+            bbIndex = 0
             for z in range(0,len(p['rois'])):
                 boundingBox = getBoundingBoxGPS(lat, long, resolution, p['rois'][z])
-                buildingPred = BuildingPrediction(str(fileIndex+j), boundingBox)
+                buildingPred = BuildingPrediction(str(fileIndex+j)+'.'+str(bbIndex), boundingBox)
                 predictionsToAdd.append([buildingPred.toJSON()])
+                bbIndex = bbIndex + 1
             # imageResult.show()
             # imageResult.savefig(resultPath)
 
             fh.arrayToCsv(csvName, predictionsToAdd)
     if os.path.exists(resultDirectory + resultCsvName + '.csv'):
         os.remove(resultDirectory + resultCsvName + '.csv')
-    shutil.copyfile(csvName, resultDirectory + resultCsvName + '.csv') 
+    shutil.copyfile(csvName, resultDirectory + resultCsvName + '.csv')
 
 def detectBuilding(directoryPath, resultDirectory, resultCsvName=None):
     predict(directoryPath, resultDirectory, resultCsvName)
