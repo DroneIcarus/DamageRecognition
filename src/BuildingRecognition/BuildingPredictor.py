@@ -71,7 +71,7 @@ def getBoundingBoxGPS(startLat, startLong, pixelResolution, pixelBoudingBox):
 
 def predict(imageDirectory, resultDirectory, resultCsvName='buildings'):
     config = InferenceConfig()
-    # config.display()
+    batchName = fh.getRandomString(5)
 
     model = modellib.MaskRCNN(mode="inference", model_dir=MODEL_DIR, config=config)
     model_path = PRETRAINED_MODEL_PATH
@@ -86,7 +86,6 @@ def predict(imageDirectory, resultDirectory, resultCsvName='buildings'):
     fh.arrayToCsv(csvName, [['BuildingPrediction']])
 
     for fileIndex in range(0, nbFiles, config.BATCH_SIZE):
-        print()
         images = []
         reste = nbFiles - (fileIndex+config.BATCH_SIZE)
         for i in range(0, config.BATCH_SIZE):
@@ -94,7 +93,7 @@ def predict(imageDirectory, resultDirectory, resultCsvName='buildings'):
                 im = skimage.io.imread(os.path.join(imageDirectory, file_names[fileIndex+i]))
             images.append(im)
 
-        predictions = model.detect(images, verbose=1) # We are replicating the same image to fill up the batch_size
+        predictions = model.detect(images, verbose=1)
         if reste < 0:
             del predictions[reste:]
 
@@ -112,7 +111,7 @@ def predict(imageDirectory, resultDirectory, resultCsvName='buildings'):
             bbIndex = 0
             for z in range(0,len(p['rois'])):
                 boundingBox = getBoundingBoxGPS(lat, long, resolution, p['rois'][z])
-                buildingPred = BuildingPrediction(str(fileIndex+j)+'.'+str(bbIndex), boundingBox)
+                buildingPred = BuildingPrediction(batchName+'_'+str(fileIndex+j)+'_'+str(bbIndex), boundingBox)
                 predictionsToAdd.append([buildingPred.toJSON()])
                 bbIndex = bbIndex + 1
             # imageResult.show()

@@ -16,6 +16,11 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Image file
+*.tif
+*.tiff
+*.png
+
 # Distribution / packaging
 .Python
 env/
