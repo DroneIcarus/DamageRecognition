@@ -44,9 +44,16 @@ def getBuildingSet(prePath, resultPath):
         tifInfo = gh.getTifInfo(resizedTiffPath)
         pixelRes = tifInfo['pixelResolution']
         topLeftGps = tifInfo['topLeftCoordinate']
-        im =  cv2.imread(resizedTiffPath)
-        imgheight=im.shape[0]
-        imgwidth=im.shape[1]
+        size = tifInfo['size']
+        im = cv2.imread(resizedTiffPath)
+        imgheight = im.shape[0]
+        imgwidth = im.shape[1]
+
+        print(size[0])
+        print(imgheight)
+        print(size[1])
+        print(imgwidth)
+
         for y in range(0, imgheight, BUILDING_IMAGE_SIZE):
             for x in range(0, imgwidth, BUILDING_IMAGE_SIZE):
                 nextIm = im[y:y+BUILDING_IMAGE_SIZE,x:x+BUILDING_IMAGE_SIZE]
@@ -145,3 +152,13 @@ def compareBuilding(preBuildingResult, postBuildingResult, resultPath):
 
     #TEST
     dp.drawBuildingOnTile(resultPath+'test.csv', Global.TEST_POST_IMAGE_PATH, resultPath)
+
+def init():
+    if not os.path.exists(Global.TEST_PRE_IMAGE_PATH):
+        print('Creating %s path'%(Global.TEST_PRE_IMAGE_PATH))
+        os.makedirs(Global.TEST_PRE_IMAGE_PATH)
+    if not os.path.exists(Global.TEST_POST_IMAGE_PATH):
+        print('Creating %s path'%(Global.TEST_POST_IMAGE_PATH))
+        os.makedirs(Global.TEST_POST_IMAGE_PATH)
+
+init()
