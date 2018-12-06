@@ -88,7 +88,15 @@ def getTifInfo(tifPath):
 
 #Dataset
 def createDataSetTiles():
-    tileIds = [[1,5],[2,5]]
+    # tileIds = [[1,5],[2,5]]
+    #tiki [[1,5],[2,5]]
+    #brian [[3,5],[3,6],[4,6]]
+    #joel [[5,6],[6,6],[6,7],[7,7]]
+    #phil [[8,7],[8,8],[9,7]]
+    #jocelyne [[8,9]]
+    #mike [[11,12]]
+    #jason [[12,13]]
+    tileIds = [[12,13]]
     extractTiles(Global.ORIGINAL_PATH+'2130300_pre.tif', tileIds, TILE_PIXEL, Global.TILE_PREDISASTER_PATH)
 
 def createDatasetSplittedTile():
@@ -109,7 +117,16 @@ def drawBuildingOnTile(csvBuildingPath, tilesPath, imageResultPath):
                     bBox = BoundingBoxGPS(damPred['BoundingBox']['lat1'], damPred['BoundingBox']['long1'], damPred['BoundingBox']['lat2'], damPred['BoundingBox']['long2'])
                     buildPred = BuildingPrediction(damPred['Id'], bBox)
                     pt1 = GeotiffHelper.gpsBoundingBoxToPixelArray(bBox, topLeftGps[0], topLeftGps[1], pixelRes[0])
-                    cv2.rectangle(im, (pt1[1], pt1[0]), (pt1[3], pt1[2]), (0, 0, 255))
+                    rectColor = (255,0,0)
+                    if 'DamageLevel' in damPred:
+                        damageLevel = int(damPred['DamageLevel'])
+                        if damageLevel == 1:
+                            rectColor = (0,255,0)
+                        if damageLevel == 2:
+                            rectColor = (0,255,255)
+                        if damageLevel == 3:
+                            rectColor = (0,0,255)
+                    cv2.rectangle(im, (pt1[1], pt1[0]), (pt1[3], pt1[2]), rectColor)
             cv2.imwrite(imageResultPath+fh.extractFileName(file)+'.png',im)
 
 def extractBuildingImage(csvBuildingPath, preDisasterPath, postDisasterPath, imageResultPath):
@@ -125,7 +142,7 @@ def extractBuildingImage(csvBuildingPath, preDisasterPath, postDisasterPath, ima
 
     preIm = readImage(preDisasterPath)
     postIm = readImage(postDisasterPath)
-
+    predictionsToAdd = []
     for line in data:
         if 'BuildingPrediction' in line:
             damPred = json.loads(line['BuildingPrediction'])
@@ -137,51 +154,71 @@ def extractBuildingImage(csvBuildingPath, preDisasterPath, postDisasterPath, ima
             buildingWidth = prePt[2] - prePt[0]
             buildingHeight = prePt[3] - prePt[1]
 
-            deltaX = Global.DATASET_IMAGE_SIZE_BUILDING - buildingWidth
-            deltaY = Global.DATASET_IMAGE_SIZE_BUILDING - buildingHeight
-
-            # x = max(0, prePt[1] - int(deltaX/2))
-            # y = max(0, prePt[0] - int(deltaY/2))
-            # GeotiffHelper.extractSubImage(preDisasterPath, imageResultPath, x, y, Global.DATASET_IMAGE_SIZE_BUILDING, Global.DATASET_IMAGE_SIZE_BUILDING)
-
             x = max(0, prePt[1] - 25)
             y = max(0, prePt[0] - 25)
             # GeotiffHelper.extractSubImage(preDisasterPath, imageResultPath, x, y, buildingWidth+50, buildingHeight+50)
-            blackImg = np.zeros((300,300,3), np.uint8)
-            blackImg2 = np.zeros((300,300,3), np.uint8)
             building_img = GeotiffHelper.extractSubImageToArray(preIm, x, y, buildingWidth+50, buildingHeight+50)
             building_img2 = GeotiffHelper.extractSubImageToArray(postIm, x, y, buildingWidth+50, buildingHeight+50)
 
+            preName = str(id)+'_A'+ '.png'
+            postName = str(id)+'_B'+ '.png'
+            predictionsToAdd.append([buildPred.toJSON(), preName])
+            predictionsToAdd.append([buildPred.toJSON(), postName])
+            # imageResult.show()
+            # imageResult.savefig(resultPath)
+
+            fh.arrayToCsv(Global.TRAIN_DATASET_PATH+'label.csv', predictionsToAdd)
+
+            blackImg = np.zeros((300,300,3), np.uint8)
+            blackImg2 = np.zeros((300,300,3), np.uint8)
             blackImg[0:buildingHeight+50, 0:buildingWidth+50] = building_img
             blackImg2[0:buildingHeight+50, 0:buildingWidth+50] = building_img2
-            cv2.imwrite(imageResultPath+str(id)+'_A' + '.png', blackImg)
-            cv2.imwrite(imageResultPath+str(id)+'_B' + '.png', blackImg2)
+
+            # cv2.imwrite(imageResultPath+str(id)+'_A' + '.png', blackImg)
+            # cv2.imwrite(imageResultPath+str(id)+'_B' + '.png', blackImg2)
+
+            cv2.imwrite(Global.TRAIN_DATASET_PRE_PATH+str(id)+'_A' + '.png', blackImg)
+            cv2.imwrite(Global.TRAIN_DATASET_PRE_PATH+str(id)+'_B' + '.png', blackImg)
+
+            cv2.imwrite(Global.TRAIN_DATASET_POST_PATH+str(id)+'_A' + '.png', blackImg)
+            cv2.imwrite(Global.TRAIN_DATASET_POST_PATH+str(id)+'_B' + '.png', blackImg2)
+
+            # compIm = np.zeros((buildingHeight+50,2*(buildingWidth+60),3), np.uint8)
+            # compIm[0:buildingHeight+50, 0:buildingWidth+50] = building_img
+            # compIm[0:buildingHeight+50, buildingWidth+50:2*(buildingWidth+50)] = building_img2
+            # cv2.imwrite(Global.LABELING_DATSET_PATH+str(id)+'_B' + '.png', compIm)
 
 
             # GeotiffHelper.extractSubImageToArray(preIm, x, y, buildingWidth+50, buildingHeight+50, resultDirectoryPath=imageResultPath+str(x)+'_'+str(y))
 
-def dev():
-    print('dev...')
-    data = fh.csvToDict(Global.DAMAGE_PREDICTION_PATH + 'buildings.csv')
+def dev(csvPath, tilesPath, imageResultPath):
+    red = (0, 0, 255)
+    green = (0, 255, 0)
+    yellow = (0, 255, 255)
+    blue = (255, 0 ,0)
+    data = fh.csvToDict(csvPath)
+    for file in os.listdir(tilesPath):
+        tifInfo = getTifInfo(tilesPath+file)
+        pixelRes = tifInfo['pixelResolution']
+        topLeftGps = tifInfo['topLeftCoordinate']
+        im =  readImage(tilesPath+file)
+        for line in data:
+            color = blue
+            if 'BuildingPrediction' in line and 'Label' in line:
+                damPred = json.loads(line['BuildingPrediction'])
+                label = int(line['Label'])
+                if label == 1:
+                    color = green
+                if label == 2:
+                    color = yellow
+                if label == 3:
+                    color = red
+                bBox = BoundingBoxGPS(damPred['BoundingBox']['lat1'], damPred['BoundingBox']['long1'], damPred['BoundingBox']['lat2'], damPred['BoundingBox']['long2'])
+                buildPred = BuildingPrediction(damPred['Id'], bBox)
+                pt1 = GeotiffHelper.gpsBoundingBoxToPixelArray(bBox, topLeftGps[0], topLeftGps[1], pixelRes[0])
+                cv2.rectangle(im, (pt1[1], pt1[0]), (pt1[3], pt1[2]), color)
+        cv2.imwrite(imageResultPath+fh.extractFileName(file)+'.png',im)
 
-    path = Global.DAMAGE_PREDICTION_PATH + 'map.tif'
-    tifInfo = getTifInfo(path)
-    pixelRes = tifInfo['pixelResolution']
-    topLeftGps = tifInfo['topLeftCoordinate']
-    im =  readImage(path)
-
-    for line in data:
-        if 'BuildingPrediction' in line:
-            damPred = json.loads(line['BuildingPrediction'])
-            bBox = BoundingBoxGPS(damPred['BoundingBox']['lat1'], damPred['BoundingBox']['long1'], damPred['BoundingBox']['lat2'], damPred['BoundingBox']['long2'])
-            buildPred = BuildingPrediction(damPred['Id'], bBox)
-            pt1 = GeotiffHelper.gpsBoundingBoxToPixelArray(bBox, topLeftGps[0], topLeftGps[1], pixelRes[0])
-            # cv2.rectangle(im, (x, y), (x1, y1), (0, 0, 255))
-            cv2.rectangle(im, (pt1[1], pt1[0]), (pt1[3], pt1[2]), (0, 0, 255))
-
-        else:
-            print("There is no columns 'BuildingPrediction' in the CSV file...")
-    cv2.imwrite('im1.png',im)
 
 def init():
     if not os.path.exists(Global.DATA_PATH):
@@ -218,5 +255,14 @@ def init():
     if not os.path.exists(Global.TRAIN_DATASET_PATH):
         print('Creating %s path'%(Global.TRAIN_DATASET_PATH))
         os.makedirs(Global.TRAIN_DATASET_PATH)
+    if not os.path.exists(Global.LABELING_DATSET_PATH):
+        print('Creating %s path'%(Global.LABELING_DATSET_PATH))
+        os.makedirs(Global.LABELING_DATSET_PATH)
+    if not os.path.exists(Global.TRAIN_DATASET_PRE_PATH):
+        print('Creating %s path'%(Global.TRAIN_DATASET_PRE_PATH))
+        os.makedirs(Global.TRAIN_DATASET_PRE_PATH)
+    if not os.path.exists(Global.TRAIN_DATASET_POST_PATH):
+        print('Creating %s path'%(Global.TRAIN_DATASET_POST_PATH))
+        os.makedirs(Global.TRAIN_DATASET_POST_PATH)
 
 init()

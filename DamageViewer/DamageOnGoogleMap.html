@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Icarus</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="css/normalize.css" />
+    <link rel="stylesheet" type="text/css" href="css/demo.css" />
+    <link rel="stylesheet" type="text/css" href="css/component.css" />
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      .topnav {
+        overflow: hidden;
+        background-color: #333;
+        height: 90px;
+      }
+
+      .topnav a {
+        float: left;
+        /* color: #f2f2f2; */
+        color: #d3394c;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+        font-size: 17px;
+      }
+
+      .topnav a:hover {
+        background-color: #ddd;
+        color: black;
+      }
+
+      .topnav a.active {
+        background-color: #d3394c;
+        color: white;
+      }
+
+      .topnav div.active {
+        height: 100%;
+        width: 150px;
+        color: #d3394c;
+        text-align: center;
+        padding: 14px 16px;
+        text-decoration: none;
+        font-size: 30px;
+        font-family: sherif;
+        background-color: #d3394c;
+        color: white;
+        float: left;
+        text-transform: uppercase;
+        -webkit-transform: translateZ(0px);
+      }
+
+    </style>
+  </head>
+  <body>
+    <div class="topnav">
+      <div class="active">
+          <label>Icarus</label>
+      </div>
+
+      <div id="damageFileDiv" style="float:right">
+        <input type="file" id="damageFile" name="damageFile" class="inputfile inputfile-4" accept=".csv" style="display:none" onclick="event.stopPropagation()">
+        <label for="file-5"><figure><svg xmlns="http://www.w3.org/2000/svg" width="20px" height="17px" viewBox="0 0 20 17"><path d="M10 0l-5.2 4.9h3.3v5.1h3.8v-5.1h3.3l-5.2-4.9zm9.3 11.5l-3.2-2.1h-2l3.4 2.6h-3.5c-.1 0-.2.1-.2.1l-.8 2.3h-6l-.8-2.2c-.1-.1-.1-.2-.2-.2h-3.6l3.4-2.6h-2l-3.2 2.1c-.4.3-.7 1-.6 1.5l.6 3.1c.1.5.7.9 1.2.9h16.3c.6 0 1.1-.4 1.3-.9l.6-3.1c.1-.5-.2-1.2-.7-1.5z"/></svg></figure> <span>Choose a file&hellip;</span></label>
+      </div>
+    </div>
+    <div id="map"></div>
+    <script>
+      var map;
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat: 45.379670, lng: -71.924293},
+          zoom: 15,
+          mapTypeId: 'satellite'
+        });
+      }
+
+      document.getElementById('damageFileDiv').addEventListener('click', function(){document.getElementById('damageFile').click();}, false);
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC_drjnQ3ABYXMIUW-O4_mWLAepYPoCgQQ&callback=initMap"
+    async defer></script>
+    <script>
+      var damageFile = null;
+      var colorIndex=0;
+      var colors = ['#00cc00', '#428ff4'];
+
+      document.getElementById('damageFile').addEventListener('change', onDamageFileChange, false);
+
+      function resetDamageFile() {
+        damageFile = null;
+        document.getElementById("damageFile").value = "";
+      }
+
+      function onDamageFileChange(event) {
+        damageFile = event.target.files && event.target.files.length > 0 ?  event.target.files[0]: null;
+        handleFileSelect();
+      }
+
+      function handleFileSelect() {
+        if (damageFile) {
+          var reader = new FileReader();
+          reader.onload = function() {
+            var text = reader.result;
+            var result = [];
+            if (text) {
+              var d = text.split('\n');
+              if (d.length > 2) {
+                var columnNames = d[0].split(',');
+                d.splice(0, 1);
+                if (columnNames.length == 1 && columnNames[0].trim() == 'BuildingPrediction') {
+                  d.forEach(function(line){
+                    var jsonValue = null;
+                    var value = line.replace(new RegExp('""', 'g'), '"')
+                    value = value.trim();
+                    if (value[0] == '"' && value[value.length-1] == '"') {
+                      value = value.slice(1, value.length-1);
+                    }
+                    try {
+                      jsonValue = JSON.parse(value);
+                    } catch (error) {
+                      //Do nothing
+                    }
+                    if (jsonValue) {
+                      result.push(jsonValue);
+                    }
+                  });
+                  if (result.length > 0) {
+                    loadDamage(result);
+                  }
+                }
+              }
+            }
+          };
+          reader.readAsText(damageFile);
+          resetDamageFile();
+      }
+    }
+
+      function loadDamage(damagePredictions) {
+        var maxLat1 = -99999;
+        var maxLong1 = -99999;
+        var minLat2 = 99999;
+        var minLong2 = 99999;
+
+        damagePredictions.forEach(function(damagePrediction) {
+          if (damagePrediction.BoundingBox.lat1 > maxLat1) {
+            maxLat1 = damagePrediction.BoundingBox.lat1;
+          }
+          if (damagePrediction.BoundingBox.long1 > maxLong1) {
+            maxLong1 = damagePrediction.BoundingBox.long1;
+          }
+          if (damagePrediction.BoundingBox.lat2 < minLat2) {
+            minLat2 = damagePrediction.BoundingBox.lat2;
+          }
+          if (damagePrediction.BoundingBox.long2 < minLong2) {
+            minLong2 = damagePrediction.BoundingBox.long2;
+          }
+          addRectangle(damagePrediction);
+        });
+        colorIndex = colorIndex +1;
+        centerLat = (maxLat1 + minLat2) /2;
+        centerLong = (maxLong1 + minLong2) /2;
+        console.log(centerLat);
+        console.log(centerLong);
+        map.setCenter(new google.maps.LatLng(centerLat, centerLong));
+      }
+
+      function addRectangle(damagePrediction) {
+        var lat1 = damagePrediction.BoundingBox.lat1;
+        var long1 = damagePrediction.BoundingBox.long1;
+        var lat2 = damagePrediction.BoundingBox.lat2;
+        var long2 = damagePrediction.BoundingBox.long2;
+        var damageLevel = Number(damagePrediction.DamageLevel);
+        var rectangleColor = '#428ff4';
+
+        switch (damageLevel) {
+          case 1:
+            rectangleColor = '#40b213';
+            break;
+          case 2:
+            rectangleColor = '#ffa216';
+            break;
+          case 3:
+            rectangleColor = '#FF0000';
+            break;
+          default:
+            rectangleColor = '#428ff4';
+            rectangleColor = colors[colorIndex];
+        }
+
+        var rectangle = new google.maps.Rectangle({
+          strokeColor: rectangleColor,
+          strokeOpacity: 0.8,
+          strokeWeight: 2,
+          fillColor: rectangleColor,
+          fillOpacity: 0.35,
+          map: map,
+          bounds: {
+            north: lat1,
+            south: lat2,
+            east: long2,
+            west: long1
+          }
+        });
+      }
+  </script>
+  </body>
+</html>
