@@ -1,15 +1,12 @@
 import os
 import sys
-import time
-import datetime
-import csv
-import shutil
-import numpy as np
 
 DIR_PROJECT = os.getcwd()
 DIR_FILE = os.path.dirname(os.path.realpath(__file__)) + '/'
 sys.path.append(DIR_FILE)  # To find local version of the library
 ROOT_DIR = DIR_FILE
+WEIGHT_MODEL_PATH = DIR_FILE+'data/pretrained_weights.h5'
+WEIGHT_MODEL_SCRIPT = DIR_FILE+'data/downloadWeight.sh'
 
 # Download and install the Python COCO tools from https://github.com/waleedka/coco
 # That's a fork from the original https://github.com/pdollar/coco with a bug
@@ -125,9 +122,16 @@ def predict(imageDirectory, resultDirectory, resultCsvName='buildings'):
 def detectBuilding(directoryPath, resultDirectory, resultCsvName=None):
     predict(directoryPath, resultDirectory, resultCsvName)
 
+
+def getModelWeight():
+    if not os.path.exists(WEIGHT_MODEL_PATH):
+        print('Downloading the building recognition model weight...')
+        os.system(WEIGHT_MODEL_SCRIPT)
+
 def init():
     if not os.path.exists(Global.PREDICTIONS_PATH):
         print('Creating %s path'%(Global.PREDICTIONS_PATH))
         os.makedirs(Global.PREDICTIONS_PATH)
+    getModelWeight()
 
 init()

@@ -33,13 +33,15 @@ def downloadTestImages():
 def testIcarus():
     #1 Download test images
     dp.downloadTestImages()
-    #2 To obtains test images
-    # tiles = [[1,4],[1,5],[2,5],[3,5],[3,6],[4,6],[5,6],[5,7],[6,7],[6,6],[6,8],[7,8],[7,7],[8,7],[8,8],[8,9]]
-    fh.deleteAllInDirectory(Global.TILE_PATH)
+    #2 To obtains test tiles images
     fh.deleteAllInDirectory(Global.TEST_PRE_IMAGE_PATH)
-    tiles = [[1, 4], [1, 5]]
+    fh.deleteAllInDirectory(Global.TEST_POST_IMAGE_PATH)
+    tiles = [[1, 5], [2, 5]]
     dp.createTiles(tiles)
-    fh.moveAllFiles(Global.TILE_PATH, Global.TEST_PRE_IMAGE_PATH)
+    fh.moveFile(Global.TILE_PATH + '2130300_pre_0_3000.tif', Global.TEST_PRE_IMAGE_PATH)
+    fh.moveFile(Global.TILE_PATH + '2130300_pre_0_4000.tif', Global.TEST_PRE_IMAGE_PATH)
+    fh.moveFile(Global.TILE_PATH+'2130300_post_0_3000.tif', Global.TEST_POST_IMAGE_PATH)
+    fh.moveFile(Global.TILE_PATH+'2130300_post_0_4000.tif', Global.TEST_POST_IMAGE_PATH)
 
     #3 Check image in PreDisaster
     icarus.checkPreImage(Global.TEST_PRE_IMAGE_PATH)

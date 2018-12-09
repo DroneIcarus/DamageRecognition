@@ -1,4 +1,4 @@
-# #Directories
+# Data directories
 DATA_PATH = 'data/'
 
 ORIGINAL_PATH = DATA_PATH + 'original/'

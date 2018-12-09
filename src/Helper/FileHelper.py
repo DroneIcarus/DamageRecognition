@@ -1,7 +1,5 @@
 import os
-import sys
 import shutil
-import time
 import datetime
 import csv
 import string
@@ -61,6 +59,10 @@ def extractFileExtension(filePath):
 
 def extractFileNameAndExtension(filePath):
     return os.path.basename(filePath)
+
+def moveFile(filePath, newFilePath):
+    if os.path.exists(filePath):
+        shutil.move(filePath, newFilePath)
 
 def moveAllFiles(directoryPath, newDirectoryPath):
     for file in os.listdir(directoryPath):
