@@ -2,7 +2,6 @@ import sys, os
 import cv2
 import json
 from scipy import spatial
-import numpy as np
 
 from Helper import GeotiffHelper as gh
 from Helper import FileHelper as fh
@@ -15,7 +14,6 @@ BUILDING_IMAGE_SIZE = 500 #pixel
 
 #Valide si les images pre-désastres sont valides
 def checkPreImage(prePath):
-    isOk = True
     for file in os.listdir(prePath):
         fileExt = fh.extractFileExtension(file)
         if fileExt == '.tiff' or fileExt == '.tif':
@@ -23,7 +21,7 @@ def checkPreImage(prePath):
             try:
                 tifInfo = gh.getTifInfo(prePath+file)
             except Exception as e:
-                #Should log the exeception
+                #TODO: Should log the exeception
                 print('Cannot obtains GeoTransform from %s file'%(file))
                 sys.exit()
         else:
@@ -91,6 +89,31 @@ def detectBuilding(directoryPath, resultDirectory, resultCsvName=None):
     fh.createDirectory(resultDirectory)
     bp.detectBuilding(directoryPath, resultDirectory, resultCsvName)
 
+def isInBoundingBoxGps(boundingBoxGPS, gpsPoint):
+    isIn = False
+    latOk = False
+    longOk = False
+
+    if boundingBoxGPS['lat1'] > 0:
+        # lat positive
+        if gpsPoint[0] <= boundingBoxGPS['lat1'] and gpsPoint[0] >= boundingBoxGPS['lat2']:
+            latOk = True
+    else:
+        # lat negative
+        if gpsPoint[0] >= boundingBoxGPS['lat1'] and gpsPoint[0] <= boundingBoxGPS['lat2']:
+            latOk = True
+    if boundingBoxGPS['long1'] > 0:
+        # long positive
+        if gpsPoint[1] <= boundingBoxGPS['long1'] and gpsPoint[1] >= boundingBoxGPS['long2']:
+            longOk = True
+    else:
+        #long negative
+        if gpsPoint[1] >= boundingBoxGPS['long1'] and gpsPoint[1] <= boundingBoxGPS['long2']:
+            longOk = True
+    if latOk and longOk:
+        isIn = True
+    return isIn
+
 #Prend un fichier .csv de résultats de détection de bâtiements avant et un autre fichier de détection des bâtiments après
 #désastres et compare les résultats pour y attributer un niveau de dégât
 def compareBuilding(preBuildingResult, postBuildingResult, resultPath):
@@ -102,18 +125,21 @@ def compareBuilding(preBuildingResult, postBuildingResult, resultPath):
     nearests = []
     damagePredictions = []
 
-    if len(prePredictions) > 0:
-        for pred in prePredictions:
-            damagePred = json.loads(pred['BuildingPrediction'])
-            damagePred['DamageLevel'] = 3
-            damagePredictions.append(damagePred)
-            preBoundingBox = damagePred['BoundingBox']
-            center = {
-            'lat':(preBoundingBox['lat1']+preBoundingBox['lat2'])/2,
-            'long':(preBoundingBox['long1']+preBoundingBox['long2'])/2
-            }
-            centers.append([center['lat'],center['long']])
+    #Add damage level to all building prediction and
+    #append center of the predictions in a array
+    for pred in prePredictions:
+        damagePred = json.loads(pred['BuildingPrediction'])
+        damagePred['DamageLevel'] = 3
+        damagePredictions.append(damagePred)
+        preBoundingBox = damagePred['BoundingBox']
+        center = {
+        'lat':(preBoundingBox['lat1']+preBoundingBox['lat2'])/2,
+        'long':(preBoundingBox['long1']+preBoundingBox['long2'])/2
+        }
+        centers.append([center['lat'],center['long']])
 
+    #For each postPrediction, get the nearest prePrediction and compare theirs bounding box
+    #and association the damage level depending the comparaison
     for pred in postPredictions:
         postBoundingBox = json.loads(pred['BuildingPrediction'])['BoundingBox']
         center = {
@@ -121,27 +147,35 @@ def compareBuilding(preBuildingResult, postBuildingResult, resultPath):
         'long':(postBoundingBox['long1']+postBoundingBox['long2'])/2
         }
         pt = [center['lat'],center['long']]
-        distance,index = spatial.KDTree(centers).query(pt)
-        nearest = damagePredictions[index]
+        tmpCenters = centers[:]
+        print(len(centers))
+        for i in range(min([5, len(tmpCenters)])):
+            distance,index = spatial.KDTree(tmpCenters).query(pt)
+            nearest = damagePredictions[index]
 
-        preBoundingBox = json.loads(prePredictions[index]['BuildingPrediction'])['BoundingBox']
+            preBoundingBox = nearest['BoundingBox']
+            isIn = isInBoundingBoxGps(preBoundingBox, pt)
+            print('isIn',isIn)
+            if not isIn:
+                break
+            tmpCenters.pop(index)
+            print('i', i)
 
-        preWidth = abs(preBoundingBox['lat2'] - preBoundingBox['lat1'])
-        preHeight = abs(preBoundingBox['long2'] - preBoundingBox['long1'])
-        postWidth = abs(postBoundingBox['lat2'] - postBoundingBox['lat1'])
-        postHeight = abs(postBoundingBox['long2'] - postBoundingBox['long1'])
+            preWidth = abs(preBoundingBox['lat2'] - preBoundingBox['lat1'])
+            preHeight = abs(preBoundingBox['long2'] - preBoundingBox['long1'])
+            postWidth = abs(postBoundingBox['lat2'] - postBoundingBox['lat1'])
+            postHeight = abs(postBoundingBox['long2'] - postBoundingBox['long1'])
 
+            diffWidth = abs(((preWidth - postWidth) / preWidth) * 100)
+            diffHeight = abs(((preHeight - postHeight) / preHeight) * 100)
 
-        diffWidth = abs(((preWidth-postWidth)/preWidth)*100)
-        diffHeight = abs(((preHeight-postHeight)/preHeight)*100)
-
-        if diffWidth < 15 and diffHeight < 15:
-            nearest['DamageLevel'] = 1
-        elif diffWidth > 15 and diffWidth < 90:
-            nearest['DamageLevel'] = 2
-        elif diffHeight > 15 and diffHeight < 90:
-            nearest['DamageLevel'] = 2
-        # nearests.append([json.dumps(nearest)])
+            if diffWidth < 15 and diffHeight < 15:
+                nearest['DamageLevel'] = 1
+            elif diffWidth > 15 and diffWidth < 90:
+                nearest['DamageLevel'] = 2
+            elif diffHeight > 15 and diffHeight < 90:
+                nearest['DamageLevel'] = 2
+            # nearests.append([json.dumps(nearest)])
 
     for pred in damagePredictions:
         nearests.append([json.dumps(pred)])

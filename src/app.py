@@ -32,29 +32,29 @@ def downloadTestImages():
 
 def testIcarus():
     #1 Download test images
-    dp.downloadTestImages()
-    #2 To obtains test tiles images
-    fh.deleteAllInDirectory(Global.TEST_PRE_IMAGE_PATH)
-    fh.deleteAllInDirectory(Global.TEST_POST_IMAGE_PATH)
-    tiles = [[1, 5], [2, 5]]
-    dp.createTiles(tiles)
-    fh.moveFile(Global.TILE_PATH + '2130300_pre_0_3000.tif', Global.TEST_PRE_IMAGE_PATH)
-    fh.moveFile(Global.TILE_PATH + '2130300_pre_0_4000.tif', Global.TEST_PRE_IMAGE_PATH)
-    fh.moveFile(Global.TILE_PATH+'2130300_post_0_3000.tif', Global.TEST_POST_IMAGE_PATH)
-    fh.moveFile(Global.TILE_PATH+'2130300_post_0_4000.tif', Global.TEST_POST_IMAGE_PATH)
-
-    #3 Check image in PreDisaster
-    icarus.checkPreImage(Global.TEST_PRE_IMAGE_PATH)
-    #4 Check image in PostDisaster
-    icarus.checkPreImage(Global.TEST_POST_IMAGE_PATH)
-    #5 Split pre image with the correct resolution to detect the buildings
-    icarus.getBuildingSet(Global.TEST_PRE_IMAGE_PATH, Global.ICARUS_PRE_SPLIT_PATH)
-    #6 Detect the building on pre images => Building prediction in csv
-    icarus.detectBuilding(Global.ICARUS_PRE_SPLIT_PATH, Global.ICARUS_BUILDING_RESULT_PATH, resultCsvName=Global.BUILDING_CSV_NAME)
-    #7 Split post image with the correct resolution to detect the buildings
-    icarus.getBuildingSet(Global.TEST_POST_IMAGE_PATH, Global.ICARUS_POST_SPLIT_PATH)
-    #8 Detect the building on post images => Building prediction in csv
-    icarus.detectBuilding(Global.ICARUS_POST_SPLIT_PATH, Global.ICARUS_POST_BUILDING_RESULT_PATH, resultCsvName=Global.BUILDING_CSV_NAME)
+    # dp.downloadTestImages()
+    # #2 To obtains test tiles images
+    # fh.deleteAllInDirectory(Global.TEST_PRE_IMAGE_PATH)
+    # fh.deleteAllInDirectory(Global.TEST_POST_IMAGE_PATH)
+    # tiles = [[1, 5], [2, 5]]
+    # dp.createTiles(tiles)
+    # fh.moveFile(Global.TILE_PATH + '2130300_pre_0_4000.tif', Global.TEST_PRE_IMAGE_PATH)
+    # fh.moveFile(Global.TILE_PATH + '2130300_pre_1000_4000.tif', Global.TEST_PRE_IMAGE_PATH)
+    # fh.moveFile(Global.TILE_PATH+'2130300_post_0_4000.tif', Global.TEST_POST_IMAGE_PATH)
+    # fh.moveFile(Global.TILE_PATH+'2130300_post_1000_4000.tif', Global.TEST_POST_IMAGE_PATH)
+    #
+    # #3 Check image in PreDisaster
+    # icarus.checkPreImage(Global.TEST_PRE_IMAGE_PATH)
+    # #4 Check image in PostDisaster
+    # icarus.checkPreImage(Global.TEST_POST_IMAGE_PATH)
+    # #5 Split pre image with the correct resolution to detect the buildings
+    # icarus.getBuildingSet(Global.TEST_PRE_IMAGE_PATH, Global.ICARUS_PRE_SPLIT_PATH)
+    # #6 Detect the building on pre images => Building prediction in csv
+    # icarus.detectBuilding(Global.ICARUS_PRE_SPLIT_PATH, Global.ICARUS_BUILDING_RESULT_PATH, resultCsvName=Global.BUILDING_CSV_NAME)
+    # #7 Split post image with the correct resolution to detect the buildings
+    # icarus.getBuildingSet(Global.TEST_POST_IMAGE_PATH, Global.ICARUS_POST_SPLIT_PATH)
+    # #8 Detect the building on post images => Building prediction in csv
+    # icarus.detectBuilding(Global.ICARUS_POST_SPLIT_PATH, Global.ICARUS_POST_BUILDING_RESULT_PATH, resultCsvName=Global.BUILDING_CSV_NAME)
     #9 Compare the result of the detected building
     icarus.compareBuilding(Global.ICARUS_BUILDING_RESULT_PATH+Global.BUILDING_CSV_NAME+'.csv', Global.ICARUS_POST_BUILDING_RESULT_PATH+Global.BUILDING_CSV_NAME+'.csv', Global.ICARUS_DAMAGE_RESULT_PATH)
 

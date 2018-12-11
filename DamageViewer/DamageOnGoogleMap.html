@@ -98,7 +98,7 @@
     <script>
       var damageFile = null;
       var colorIndex=0;
-      var colors = ['#00cc00', '#428ff4'];
+      var colors = ['#cc00cc', '#428ff4','#00cc00'];
 
       document.getElementById('damageFile').addEventListener('change', onDamageFileChange, false);
 
@@ -200,8 +200,8 @@
             rectangleColor = '#FF0000';
             break;
           default:
+            //rectangleColor = colors[colorIndex];
             rectangleColor = '#428ff4';
-            rectangleColor = colors[colorIndex];
         }
 
         var rectangle = new google.maps.Rectangle({
