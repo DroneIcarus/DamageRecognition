@@ -1,0 +1,36 @@
+# Data directories
+DATA_PATH = 'data/'
+
+ORIGINAL_PATH = DATA_PATH + 'original/'
+PREVIEW_PATH = DATA_PATH + 'preview/'
+GRID_PREVIEW_PATH = DATA_PATH + 'gridPreview/'
+TILE_PATH = DATA_PATH + 'tiles/' #Image corresponding to a square in the gridPreview
+POST_PRE_DATASET_PATH = DATA_PATH + 'postPreDataSet/'
+DAMAGE_PREDICTION_PATH = DATA_PATH + 'damagePredictions/'
+
+PREDICTIONS_PATH = DATA_PATH + 'buildingPredictions/'
+
+#Path to construct the building dataset for the deep learning
+DATASET_PATH = DATA_PATH + 'BuildingDataSet/'
+TILE_PREDISASTER_PATH = DATASET_PATH + 'tiles/'
+PRE_BUILDING_PATH = DATASET_PATH + 'preBuilding/'
+PRE_BUILDING_RESULT_PATH = PRE_BUILDING_PATH + 'results/'
+BUILDING_CSV_NAME = 'buildings'
+BUILDING_ZONE_CSV_NAME = 'buildingZones'
+TRAIN_DATASET_PATH = DATASET_PATH + 'train/'
+TRAIN_DATASET_POST_PATH = TRAIN_DATASET_PATH + 'post/'
+TRAIN_DATASET_PRE_PATH = TRAIN_DATASET_PATH + 'pre/'
+LABELING_DATSET_PATH = TRAIN_DATASET_PATH + 'labeling/'
+
+TEST_PRE_IMAGE_PATH = 'PreDisaster/'
+TEST_POST_IMAGE_PATH = 'PostDisaster/'
+
+ICARUS_DATA_PATH = DATA_PATH + 'Icarus/'
+ICARUS_PRE_SPLIT_PATH = ICARUS_DATA_PATH + 'BuildingSet/'
+ICARUS_BUILDING_RESULT_PATH = ICARUS_DATA_PATH + 'BuildingResult/'
+ICARUS_POST_SPLIT_PATH = ICARUS_DATA_PATH + 'PostBuildingSet/'
+ICARUS_POST_BUILDING_RESULT_PATH = ICARUS_DATA_PATH + 'PostBuildingResult/'
+ICARUS_DAMAGE_SET_PATH = ICARUS_DATA_PATH + 'DamageSet/'
+ICARUS_DAMAGE_RESULT_PATH = ICARUS_DATA_PATH + 'DamageResult/'
+
+DATASET_IMAGE_SIZE_BUILDING = 200 #pixel
