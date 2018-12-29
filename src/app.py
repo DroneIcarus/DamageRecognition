@@ -38,11 +38,10 @@ def testIcarus():
     fh.deleteAllInDirectory(Global.TEST_POST_IMAGE_PATH)
     tiles = [[1, 5], [2, 5]]
     dp.createTiles(tiles)
-    fh.moveFile(Global.TILE_PATH + '2130300_pre_0_3000.tif', Global.TEST_PRE_IMAGE_PATH)
     fh.moveFile(Global.TILE_PATH + '2130300_pre_0_4000.tif', Global.TEST_PRE_IMAGE_PATH)
-    fh.moveFile(Global.TILE_PATH+'2130300_post_0_3000.tif', Global.TEST_POST_IMAGE_PATH)
+    fh.moveFile(Global.TILE_PATH + '2130300_pre_1000_4000.tif', Global.TEST_PRE_IMAGE_PATH)
     fh.moveFile(Global.TILE_PATH+'2130300_post_0_4000.tif', Global.TEST_POST_IMAGE_PATH)
-
+    fh.moveFile(Global.TILE_PATH+'2130300_post_1000_4000.tif', Global.TEST_POST_IMAGE_PATH)s
     #3 Check image in PreDisaster
     icarus.checkPreImage(Global.TEST_PRE_IMAGE_PATH)
     #4 Check image in PostDisaster
@@ -57,6 +56,9 @@ def testIcarus():
     icarus.detectBuilding(Global.ICARUS_POST_SPLIT_PATH, Global.ICARUS_POST_BUILDING_RESULT_PATH, resultCsvName=Global.BUILDING_CSV_NAME)
     #9 Compare the result of the detected building
     icarus.compareBuilding(Global.ICARUS_BUILDING_RESULT_PATH+Global.BUILDING_CSV_NAME+'.csv', Global.ICARUS_POST_BUILDING_RESULT_PATH+Global.BUILDING_CSV_NAME+'.csv', Global.ICARUS_DAMAGE_RESULT_PATH)
+
+    dp.drawBuildingOnTile(Global.ICARUS_BUILDING_RESULT_PATH+Global.BUILDING_CSV_NAME+'.csv', Global.TEST_PRE_IMAGE_PATH, Global.ICARUS_BUILDING_RESULT_PATH)
+    dp.drawBuildingOnTile(Global.ICARUS_POST_BUILDING_RESULT_PATH+Global.BUILDING_CSV_NAME+'.csv', Global.TEST_POST_IMAGE_PATH, Global.ICARUS_POST_BUILDING_RESULT_PATH)
 
 def launchIcarus():
     #1 Check image in PreDisaster
