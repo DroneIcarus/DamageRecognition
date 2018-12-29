@@ -41,7 +41,7 @@ def testIcarus():
     fh.moveFile(Global.TILE_PATH + '2130300_pre_0_4000.tif', Global.TEST_PRE_IMAGE_PATH)
     fh.moveFile(Global.TILE_PATH + '2130300_pre_1000_4000.tif', Global.TEST_PRE_IMAGE_PATH)
     fh.moveFile(Global.TILE_PATH+'2130300_post_0_4000.tif', Global.TEST_POST_IMAGE_PATH)
-    fh.moveFile(Global.TILE_PATH+'2130300_post_1000_4000.tif', Global.TEST_POST_IMAGE_PATH)s
+    fh.moveFile(Global.TILE_PATH+'2130300_post_1000_4000.tif', Global.TEST_POST_IMAGE_PATH)
     #3 Check image in PreDisaster
     icarus.checkPreImage(Global.TEST_PRE_IMAGE_PATH)
     #4 Check image in PostDisaster
